@@ -20,6 +20,7 @@ namespace Xnake
         SpriteBatch spriteBatch;
 
         SpriteFont font;
+        SpriteFont font2;
         Texture2D backgroundTexture;
         Texture2D headTexture;
         Texture2D bodyTexture;
@@ -37,9 +38,16 @@ namespace Xnake
         Direction lastDirection;
         Direction nextDirection;
         Random random;
-        int totalMilliseconds;
-        const int millisecondsSleep = 25;
+        int partialMilliseconds;
+        int millisecondsSleep;
+        int totalTime;
+        const int SLOW = 100;
+        const int NORMAL = 40;
+        const int FAST = 10;
         int length;
+        int score;
+        bool paused;
+        bool justPaused;
 
         public Game()
         {
@@ -68,11 +76,14 @@ namespace Xnake
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // Initialize.
-            totalMilliseconds = 0;
+            partialMilliseconds = 0;
+            millisecondsSleep = NORMAL;
             random = new Random();
+            totalTime = 0;
 
             // Create colors for every part of the snake and food.
             font = Content.Load<SpriteFont>("font");
+            font2 = Content.Load<SpriteFont>("font2");
             backgroundTexture = Content.Load<Texture2D>("background");
             headTexture = Content.Load<Texture2D>("head");
             bodyTexture = Content.Load<Texture2D>("body");
@@ -95,6 +106,8 @@ namespace Xnake
             lastDirection = Direction.UP;
             board[random.Next() % columns][random.Next() % rows] = FOOD;
             length = 1;
+            score = 0;
+            paused = false;
         }
 
         /// <summary>
@@ -124,81 +137,103 @@ namespace Xnake
                 nextDirection = Direction.UP;
             else if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Escape))
                 this.Exit();
-
-            // Check if some time has passed before updating the snake.
-            if (totalMilliseconds >= millisecondsSleep)
+            else if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Space))
             {
-                totalMilliseconds -= millisecondsSleep;
-
-                // Move snake according to the last direction.
-                int row = 0;
-                int column = 0;
-                for (int i = 0; i < columns; i++)
-                    for (int j = 0; j < rows; j++)
-                    {
-                        if (board[i][j] == HEAD)
-                        {
-                            column = i;
-                            row = j;
-                            board[i][j] = length;
-                            switch (nextDirection)
-                            {
-                                case Direction.UP:
-                                    row--;
-                                    break;
-                                case Direction.DOWN:
-                                    row++;
-                                    break;
-                                case Direction.RIGHT:
-                                    column++;
-                                    break;
-                                case Direction.LEFT:
-                                    column--;
-                                    break;
-                            }
-                            lastDirection = nextDirection;
-                        }
-                        else if (board[i][j] > 0)
-                            board[i][j]--;
-                    }
-
-                // Find the next position for the head (mind you about the limits of the board).
-                if (column < 0)
-                    column = columns - 1;
-                else if (column >= columns)
-                    column = 0;
-                if (row < 0)
-                    row = rows - 1;
-                else if (row >= rows)
-                    row = 0;
-                // Check whether the head of the snake has touched itself or not.
-                if (board[column][row] == 0 || board[column][row] == FOOD)
+                if (!justPaused)
                 {
-                    // If the head is now on food, take the food and add food somewhere else.
-                    if (board[column][row] == FOOD)
+                    paused = !paused;
+                    justPaused = true;
+                }
+            }
+            else if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.D1) || Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.NumPad1))
+                millisecondsSleep = SLOW;
+            else if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.D2) || Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.NumPad2))
+                millisecondsSleep = NORMAL;
+            else if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.D3) || Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.NumPad3))
+                millisecondsSleep = FAST;
+
+            if (Keyboard.GetState(PlayerIndex.One).IsKeyUp(Keys.Space))
+                justPaused = false;
+
+            if (!paused)
+            {
+                // Check if some time has passed before updating the snake.
+                if (partialMilliseconds >= millisecondsSleep)
+                {
+                    partialMilliseconds -= millisecondsSleep;
+
+                    // Move snake according to the last direction.
+                    int row = 0;
+                    int column = 0;
+                    for (int i = 0; i < columns; i++)
+                        for (int j = 0; j < rows; j++)
+                        {
+                            if (board[i][j] == HEAD)
+                            {
+                                column = i;
+                                row = j;
+                                board[i][j] = length;
+                                switch (nextDirection)
+                                {
+                                    case Direction.UP:
+                                        row--;
+                                        break;
+                                    case Direction.DOWN:
+                                        row++;
+                                        break;
+                                    case Direction.RIGHT:
+                                        column++;
+                                        break;
+                                    case Direction.LEFT:
+                                        column--;
+                                        break;
+                                }
+                                lastDirection = nextDirection;
+                            }
+                            else if (board[i][j] > 0)
+                                board[i][j]--;
+                        }
+
+                    // Find the next position for the head (mind you about the limits of the board).
+                    if (column < 0)
+                        column = columns - 1;
+                    else if (column >= columns)
+                        column = 0;
+                    if (row < 0)
+                        row = rows - 1;
+                    else if (row >= rows)
+                        row = 0;
+                    // Check whether the head of the snake has touched itself or not.
+                    if (board[column][row] == 0 || board[column][row] == FOOD)
                     {
-                        length++;
-                        board[random.Next() % columns][random.Next() % rows] = FOOD;
-                        biteSound.Play();
+                        // If the head is now on food, take the food and add food somewhere else.
+                        if (board[column][row] == FOOD)
+                        {
+                            length++;
+                            score += 100 / millisecondsSleep;
+                            board[random.Next() % columns][random.Next() % rows] = FOOD;
+                            biteSound.Play();
+                        }
+                        board[column][row] = HEAD;
                     }
-                    board[column][row] = HEAD;
+                    else
+                    {
+                        // Player is dead. Place the snake on the board and some food again.
+                        System.Threading.Thread.Sleep(5000);
+                        for (int i = 0; i < columns; i++)
+                            for (int j = 0; j < rows; j++)
+                                board[i][j] = 0;
+                        board[random.Next() % columns][random.Next() % rows] = HEAD;
+                        lastDirection = Direction.UP;
+                        board[random.Next() % columns][random.Next() % rows] = FOOD;
+                        length = 1;
+                        score = 0;
+                    }
                 }
                 else
                 {
-                    // Player is dead. Place the snake on the board and some food again.
-                    System.Threading.Thread.Sleep(5000);
-                    for (int i = 0; i < columns; i++)
-                        for (int j = 0; j < rows; j++)
-                            board[i][j] = 0;
-                    board[random.Next() % columns][random.Next() % rows] = HEAD;
-                    lastDirection = Direction.UP;
-                    board[random.Next() % columns][random.Next() % rows] = FOOD;
-                    length = 1;
+                    partialMilliseconds += gameTime.ElapsedGameTime.Milliseconds;
                 }
-            }
-            else
-            {
-                totalMilliseconds += gameTime.ElapsedGameTime.Milliseconds;
             }
 
             base.Update(gameTime);
@@ -210,6 +245,7 @@ namespace Xnake
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            totalTime += gameTime.ElapsedGameTime.Milliseconds;
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // Draw every object.
@@ -230,7 +266,13 @@ namespace Xnake
                     }
                 }
             }
-            spriteBatch.DrawString(font, (length - 1).ToString(), new Vector2(20, 0), Color.White * 0.7f);
+            spriteBatch.DrawString(font, score.ToString(), new Vector2(20, 0), Color.White * 0.6f);
+            float alpha = (totalTime < 5000) ? 1.0f : (1.0f - (totalTime - 5000) / 5000.0f);
+            if (alpha > 0)
+            {
+                spriteBatch.DrawString(font2, "Press [Space] to pause the game", new Vector2(20, 400), Color.White * alpha);
+                spriteBatch.DrawString(font2, "Press [1], [2] or [3] to change speed", new Vector2(20, 420), Color.White * alpha);
+            }
             spriteBatch.End();
 
             base.Draw(gameTime);
