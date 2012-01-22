@@ -48,6 +48,7 @@ namespace Xnake
         int score;
         bool paused;
         bool justPaused;
+        bool dead;
 
         public Game()
         {
@@ -108,6 +109,8 @@ namespace Xnake
             length = 1;
             score = 0;
             paused = false;
+            justPaused = false;
+            dead = false;
         }
 
         /// <summary>
@@ -137,7 +140,18 @@ namespace Xnake
                 nextDirection = Direction.UP;
             else if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Escape))
                 this.Exit();
-            else if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Space))
+            else if (dead && Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Enter))
+            {
+                dead = false;
+                for (int i = 0; i < columns; i++)
+                    for (int j = 0; j < rows; j++)
+                        board[i][j] = 0;
+                board[random.Next() % columns][random.Next() % rows] = HEAD;
+                board[random.Next() % columns][random.Next() % rows] = FOOD;
+                length = 1;
+                score = 0;
+            }
+            else if (!dead && Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Space))
             {
                 if (!justPaused)
                 {
@@ -155,7 +169,7 @@ namespace Xnake
             if (Keyboard.GetState(PlayerIndex.One).IsKeyUp(Keys.Space))
                 justPaused = false;
 
-            if (!paused)
+            if (!paused && !dead)
             {
                 // Check if some time has passed before updating the snake.
                 if (partialMilliseconds >= millisecondsSleep)
@@ -214,21 +228,13 @@ namespace Xnake
                             board[random.Next() % columns][random.Next() % rows] = FOOD;
                             biteSound.Play();
                         }
-                        board[column][row] = HEAD;
                     }
                     else
                     {
-                        // Player is dead. Place the snake on the board and some food again.
-                        System.Threading.Thread.Sleep(5000);
-                        for (int i = 0; i < columns; i++)
-                            for (int j = 0; j < rows; j++)
-                                board[i][j] = 0;
-                        board[random.Next() % columns][random.Next() % rows] = HEAD;
-                        lastDirection = Direction.UP;
-                        board[random.Next() % columns][random.Next() % rows] = FOOD;
-                        length = 1;
-                        score = 0;
+                        // Player is dead.
+                        dead = true;
                     }
+                    board[column][row] = HEAD;
                 }
                 else
                 {
@@ -272,6 +278,11 @@ namespace Xnake
             {
                 spriteBatch.DrawString(font2, "Press [Space] to pause the game", new Vector2(20, 400), Color.White * alpha);
                 spriteBatch.DrawString(font2, "Press [1], [2] or [3] to change speed", new Vector2(20, 420), Color.White * alpha);
+            }
+            if (dead)
+            {
+                spriteBatch.DrawString(font, "Game Over!", new Vector2(270, 200), Color.Red * 0.7f);
+                spriteBatch.DrawString(font2, "Press [Enter] to restart", new Vector2(320, 270), Color.Red * 0.7f);
             }
             spriteBatch.End();
 
