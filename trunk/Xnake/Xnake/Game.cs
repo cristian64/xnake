@@ -27,6 +27,7 @@ namespace Xnake
         Texture2D foodTexture;
         SoundEffect biteSound;
         SoundEffect ost;
+        SoundEffect deadSound;
         SoundEffectInstance ostInstance;
         const int HEAD = int.MaxValue;
         const int FOOD = int.MinValue;
@@ -42,7 +43,7 @@ namespace Xnake
         int millisecondsSleep;
         int totalTime;
         const int SLOW = 100;
-        const int NORMAL = 40;
+        const int NORMAL = 35;
         const int FAST = 10;
         int length;
         int score;
@@ -91,6 +92,7 @@ namespace Xnake
             foodTexture = Content.Load<Texture2D>("hamburger");
             biteSound = Content.Load<SoundEffect>("bite");
             ost = Content.Load<SoundEffect>("ost");
+            deadSound = Content.Load<SoundEffect>("dead");
             ostInstance = ost.CreateInstance();
             ostInstance.IsLooped = true;
             ostInstance.Play();
@@ -103,9 +105,9 @@ namespace Xnake
                 board[i] = new int[rows];
 
             // Place the snake on the board and some food.
-            board[random.Next() % columns][random.Next() % rows] = HEAD;
+            board[17][15] = HEAD;
             lastDirection = Direction.UP;
-            board[random.Next() % columns][random.Next() % rows] = FOOD;
+            board[21][8] = FOOD;
             length = 1;
             score = 0;
             paused = false;
@@ -146,8 +148,8 @@ namespace Xnake
                 for (int i = 0; i < columns; i++)
                     for (int j = 0; j < rows; j++)
                         board[i][j] = 0;
-                board[random.Next() % columns][random.Next() % rows] = HEAD;
-                board[random.Next() % columns][random.Next() % rows] = FOOD;
+                board[17][15] = HEAD;
+                board[21][8] = FOOD;
                 length = 1;
                 score = 0;
             }
@@ -225,7 +227,10 @@ namespace Xnake
                         {
                             length++;
                             score += 100 / millisecondsSleep;
-                            board[random.Next() % columns][random.Next() % rows] = FOOD;
+                            int row2 = random.Next() % rows;
+                            int column2 = random.Next() % columns;
+                            if (board[column2][row2] == 0)
+                                board[column2][row2] = FOOD;
                             biteSound.Play();
                         }
                     }
@@ -233,6 +238,7 @@ namespace Xnake
                     {
                         // Player is dead.
                         dead = true;
+                        deadSound.Play();
                     }
                     board[column][row] = HEAD;
                 }
@@ -272,7 +278,7 @@ namespace Xnake
                     }
                 }
             }
-            spriteBatch.DrawString(font, score.ToString(), new Vector2(20, 0), Color.White * 0.6f);
+            spriteBatch.DrawString(font, score.ToString(), new Vector2(20, 0), Color.White * 0.7f);
             float alpha = (totalTime < 5000) ? 1.0f : (1.0f - (totalTime - 5000) / 5000.0f);
             if (alpha > 0)
             {
@@ -281,8 +287,8 @@ namespace Xnake
             }
             if (dead)
             {
-                spriteBatch.DrawString(font, "Game Over!", new Vector2(270, 200), Color.Red * 0.7f);
-                spriteBatch.DrawString(font2, "Press [Enter] to restart", new Vector2(320, 270), Color.Red * 0.7f);
+                spriteBatch.DrawString(font, "Game Over!", new Vector2(270, 180), Color.Red * 0.7f);
+                spriteBatch.DrawString(font2, "Press [Enter] to restart", new Vector2(320, 250), Color.Red * 0.7f);
             }
             spriteBatch.End();
 
