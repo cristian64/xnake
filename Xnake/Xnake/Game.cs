@@ -284,12 +284,32 @@ namespace Xnake
                 for (int j = 0; j < rows; j++)
                 {
                     if (board[i][j] == HEAD)
-                        spriteBatch.Draw(headTexture, new Rectangle(i * CELLSIZE - 2, j * CELLSIZE - 2, CELLSIZE + 4, CELLSIZE + 4), Color.White);
+                    {
+                        float rotation = 0.0f;
+                        Vector2 origin = new Vector2(0.0f);
+                        if (lastDirection == Direction.DOWN)
+                        {
+                            rotation = (float)Math.PI;
+                            origin = new Vector2(headTexture.Width, headTexture.Height);
+                        }
+                        else if (lastDirection == Direction.LEFT)
+                        {
+                            rotation = -(float)Math.PI / 2;
+                            origin = new Vector2(headTexture.Width, 0.0f);
+                        }
+                        else if (lastDirection == Direction.RIGHT)
+                        {
+                            rotation = (float)Math.PI / 2;
+                            origin = new Vector2(0.0f, headTexture.Height);
+                        }
+                        spriteBatch.Draw(headTexture, new Rectangle(i * CELLSIZE - 2, j * CELLSIZE - 2, CELLSIZE + 4, CELLSIZE + 4), null, Color.White, rotation, origin, SpriteEffects.None, 0.0f);
+                    }
                     else if (board[i][j] == FOOD)
                         spriteBatch.Draw(foodTexture, new Rectangle(i * CELLSIZE - 2, j * CELLSIZE - 2, CELLSIZE + 4, CELLSIZE + 4), Color.White);
                     else if (board[i][j] > 0)
                     {
-                        int shrink = CELLSIZE / 3 > board[i][j] ?  CELLSIZE / 3 - board[i][j] : 0;
+                        int shrink = CELLSIZE / 3 - board[i][j] - 1;
+                        shrink = shrink > 0 ? shrink : 0;
                         spriteBatch.Draw(bodyTexture, new Rectangle(i * CELLSIZE + shrink, j * CELLSIZE + shrink, CELLSIZE - 2 * shrink, CELLSIZE - 2 * shrink), Color.White);
                     }
                 }
