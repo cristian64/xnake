@@ -107,7 +107,6 @@ namespace Xnake
             // Place the snake on the board and some food.
             board[17][15] = HEAD;
             lastDirection = Direction.UP;
-            board[21][8] = FOOD;
             length = 1;
             score = 0;
             paused = false;
@@ -149,7 +148,6 @@ namespace Xnake
                     for (int j = 0; j < rows; j++)
                         board[i][j] = 0;
                 board[17][15] = HEAD;
-                board[21][8] = FOOD;
                 length = 1;
                 score = 0;
             }
@@ -241,6 +239,24 @@ namespace Xnake
                         deadSound.Play();
                     }
                     board[column][row] = HEAD;
+
+                    // Check if more food has to be placed.
+                    int foods = 0;
+                    for (int i = 0; i < columns; i++)
+                    {
+                        for (int j = 0; j < rows; j++)
+                        {
+                            if (board[i][j] == FOOD)
+                                foods++;
+                        }
+                    }
+                    if (score / 50 >= foods)
+                    {
+                        int row2 = random.Next() % rows;
+                        int column2 = random.Next() % columns;
+                        if (board[column2][row2] == 0)
+                            board[column2][row2] = FOOD;
+                    }
                 }
                 else
                 {
@@ -282,6 +298,8 @@ namespace Xnake
             float alpha = (totalTime < 5000) ? 1.0f : (1.0f - (totalTime - 5000) / 5000.0f);
             if (alpha > 0)
             {
+                spriteBatch.DrawString(font2, "Press arrows to change direction", new Vector2(20, 360), Color.White * alpha);
+                spriteBatch.DrawString(font2, "Press [Esc] to exit", new Vector2(20, 380), Color.White * alpha);
                 spriteBatch.DrawString(font2, "Press [Space] to pause the game", new Vector2(20, 400), Color.White * alpha);
                 spriteBatch.DrawString(font2, "Press [1], [2] or [3] to change speed", new Vector2(20, 420), Color.White * alpha);
             }
