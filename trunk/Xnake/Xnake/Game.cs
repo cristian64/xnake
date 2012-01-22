@@ -42,6 +42,7 @@ namespace Xnake
         int partialMilliseconds;
         int millisecondsSleep;
         int totalTime;
+        int lastSecond;
         const int SLOW = 100;
         const int NORMAL = 35;
         const int FAST = 10;
@@ -82,6 +83,7 @@ namespace Xnake
             millisecondsSleep = NORMAL;
             random = new Random();
             totalTime = 0;
+            lastSecond = 0;
 
             // Create colors for every part of the snake and food.
             font = Content.Load<SpriteFont>("font");
@@ -157,6 +159,7 @@ namespace Xnake
                 {
                     paused = !paused;
                     justPaused = true;
+                    ostInstance.Volume = paused ? 0.2f : 1.0f;
                 }
             }
             else if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.D1) || Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.NumPad1))
@@ -225,10 +228,6 @@ namespace Xnake
                         {
                             length++;
                             score += 100 / millisecondsSleep;
-                            int row2 = random.Next() % rows;
-                            int column2 = random.Next() % columns;
-                            if (board[column2][row2] == 0)
-                                board[column2][row2] = FOOD;
                             biteSound.Play();
                         }
                     }
@@ -240,22 +239,23 @@ namespace Xnake
                     }
                     board[column][row] = HEAD;
 
-                    // Check if more food has to be placed.
-                    int foods = 0;
-                    for (int i = 0; i < columns; i++)
+                    // Every few seconds, check if more food has to be placed.
+                    int currentSecond = totalTime / 1000;
+                    if (lastSecond != currentSecond && currentSecond % (3 + length / 20) == 0)
                     {
-                        for (int j = 0; j < rows; j++)
+                        lastSecond = currentSecond;
+                        int foods = 0;
+                        for (int i = 0; i < columns; i++)
+                            for (int j = 0; j < rows; j++)
+                                if (board[i][j] == FOOD)
+                                    foods++;
+                        if (score / 50 >= foods)
                         {
-                            if (board[i][j] == FOOD)
-                                foods++;
+                            int rowCandidate = random.Next() % rows;
+                            int columnCandidate = random.Next() % columns;
+                            if (board[columnCandidate][rowCandidate] == 0)
+                                board[columnCandidate][rowCandidate] = FOOD;
                         }
-                    }
-                    if (score / 50 >= foods)
-                    {
-                        int row2 = random.Next() % rows;
-                        int column2 = random.Next() % columns;
-                        if (board[column2][row2] == 0)
-                            board[column2][row2] = FOOD;
                     }
                 }
                 else
@@ -305,8 +305,12 @@ namespace Xnake
             }
             if (dead)
             {
-                spriteBatch.DrawString(font, "Game Over!", new Vector2(270, 180), Color.Red * 0.7f);
+                spriteBatch.DrawString(font, "Game Over!", new Vector2(265, 180), Color.Red * 0.7f);
                 spriteBatch.DrawString(font2, "Press [Enter] to restart", new Vector2(320, 250), Color.Red * 0.7f);
+            }
+            if (paused)
+            {
+                spriteBatch.DrawString(font, "Paused", new Vector2(320, 180), Color.Blue * 0.7f);
             }
             spriteBatch.End();
 
