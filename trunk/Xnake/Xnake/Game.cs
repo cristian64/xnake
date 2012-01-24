@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
@@ -8,6 +9,7 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using AStar;
 
 namespace Xnake
 {
@@ -25,6 +27,7 @@ namespace Xnake
         Texture2D headTexture;
         Texture2D bodyTexture;
         Texture2D foodTexture;
+        Texture2D astarTexture;
         SoundEffect biteSound;
         SoundEffect ost;
         SoundEffect deadSound;
@@ -51,6 +54,8 @@ namespace Xnake
         bool paused;
         bool justPaused;
         bool dead;
+        bool automatic;
+        ArrayList path;
 
         public Game()
         {
@@ -92,6 +97,7 @@ namespace Xnake
             headTexture = Content.Load<Texture2D>("head");
             bodyTexture = Content.Load<Texture2D>("body");
             foodTexture = Content.Load<Texture2D>("hamburger");
+            astarTexture = Content.Load<Texture2D>("astar");
             biteSound = Content.Load<SoundEffect>("bite");
             ost = Content.Load<SoundEffect>("ost");
             deadSound = Content.Load<SoundEffect>("dead");
@@ -114,6 +120,8 @@ namespace Xnake
             paused = false;
             justPaused = false;
             dead = false;
+            automatic = false;
+            path = new ArrayList();
         }
 
         /// <summary>
@@ -133,14 +141,34 @@ namespace Xnake
         protected override void Update(GameTime gameTime)
         {
             // Check keys.
+            if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.F1))
+            {
+                if (!automatic)
+                {
+                    path = new ArrayList();
+                }
+                automatic = true;
+            }
             if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Left) && lastDirection != Direction.RIGHT)
+            {
                 nextDirection = Direction.LEFT;
+                automatic = false;
+            }
             else if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Right) && lastDirection != Direction.LEFT)
+            {
                 nextDirection = Direction.RIGHT;
+                automatic = false;
+            }
             else if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Down) && lastDirection != Direction.UP)
+            {
                 nextDirection = Direction.DOWN;
+                automatic = false;
+            }
             else if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Up) && lastDirection != Direction.DOWN)
+            {
                 nextDirection = Direction.UP;
+                automatic = false;
+            }
             else if (Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Escape))
                 this.Exit();
             else if (dead && Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Enter))
@@ -178,6 +206,52 @@ namespace Xnake
                 if (partialMilliseconds >= millisecondsSleep)
                 {
                     partialMilliseconds -= millisecondsSleep;
+
+                    // Execute A* to find a path
+                    if (automatic)
+                    {
+                        // If there is no  path, it finds it.
+                        if (path == null || path.Count == 0)
+                        {
+                            Node startNode = null;
+                            Node endNode = null;
+                            Node[][] nodes = new Node[columns][];
+                            for (int i = 0; i < columns; i++)
+                            {
+                                nodes[i] = new Node[rows];
+                                for (int j = 0; j < rows; j++)
+                                {
+                                    nodes[i][j] = new Node(i, j);
+                                    if (board[i][j] == FOOD)
+                                        endNode = nodes[i][j];
+                                    else if (board[i][j] == HEAD)
+                                        startNode = nodes[i][j];
+                                    else if (board[i][j] > 0)
+                                        nodes[i][j].Transitable = false;
+                                }
+                            }
+
+                            AStar.AStar astar = new AStar.AStar(nodes, startNode, endNode);
+                            path = astar.FindPath();
+                        }
+
+                        // If there is a path, it takes the next move.
+                        if (path != null && path.Count > 0)
+                        {
+                            Node node = (Node)path[0];
+                            path.RemoveAt(0);
+
+                            //TODO: check where the head is
+                            //according to the move, move in any of those 4 directions
+                            //add food immediately after take it
+                            //int foods better;
+                            //(optional)row and columnd to say where the head is always
+                            //(optional)not take tail into account, since it will be gone: head needed
+                            //(optional)take the hamburguer randomly: how?
+                            //say in menu F1 is for help
+                            //astar.png not that visible
+                        }
+                    }
 
                     // Move snake according to the last direction.
                     int row = 0;
@@ -279,6 +353,11 @@ namespace Xnake
             // Draw every object.
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
             spriteBatch.Draw(backgroundTexture, new Vector2(0, 0), Color.White);
+            if (automatic && path != null)
+                foreach (Node i in path)
+                {
+                    spriteBatch.Draw(astarTexture, new Rectangle(i.Column * CELLSIZE, i.Row * CELLSIZE, CELLSIZE, CELLSIZE), Color.White);
+                }
             for (int i = 0; i < columns; i++)
             {
                 for (int j = 0; j < rows; j++)
