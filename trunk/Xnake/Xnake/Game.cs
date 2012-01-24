@@ -266,6 +266,10 @@ namespace Xnake
                             else
                                 nextDirection = Direction.DOWN;
                         }
+                        else
+                        {
+                            // TODO: try not to die if there is no path!
+                        }
                     }
 
                     // Move snake according to the last direction.
