@@ -20,7 +20,7 @@
     <Thumbnail>
     </Thumbnail>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>C:\Users\Cristian\Desktop\Xnake %28published%29\</PublishUrl>
+    <PublishUrl>C:\Users\Cristian\Desktop\Xnake %28installer%29\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -130,6 +130,10 @@
     <Content Include="box.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\AStar\AStar.csproj">
+      <Project>{F6F85683-3407-46CD-BDED-439B35174F7A}</Project>
+      <Name>AStar</Name>
+    </ProjectReference>
     <ProjectReference Include="..\XnakeContent\XnakeContent.contentproj">
       <Name>XnakeContent</Name>
       <XnaReferenceType>Content</XnaReferenceType>
