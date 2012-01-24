@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Collections;
+using Wintellect.PowerCollections;
 
 namespace AStar
 {
@@ -55,7 +56,7 @@ namespace AStar
          */
         public ArrayList FindPath()
         {
-            SortedSet<Node> openList = new SortedSet<Node>(new NodeComparer());
+            OrderedBag<Node> openList = new OrderedBag<Node>(new NodeComparer());
             ArrayList closedList = new ArrayList();
             Node currentNode = null;
             bool pathFound = false;
@@ -82,7 +83,7 @@ namespace AStar
             {
                 iterations++;
                 // Extraemos el nodo de menor F desde la lista abierta hacia la lista cerrada.
-                currentNode = openList.Min;
+                currentNode = openList.Min();
                 openList.Remove(currentNode);
                 closedList.Add(currentNode);
 

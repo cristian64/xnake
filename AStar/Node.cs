@@ -10,20 +10,7 @@ namespace AStar
     {
         public int Compare(Node node1, Node node2)
         {
-            if (node1.F > node2.F)
-                return 1;
-            else if (node1.F < node2.F)
-                return -1;
-            else if (node1.Column < node2.Column)
-                return 1;
-            else if (node1.Column > node2.Column)
-                return -1;
-            else if (node1.Row < node2.Row)
-                return 1;
-            else if (node1.Row > node2.Row)
-                return -1;
-            else
-                return 0;
+            return node1.F - node2.F;
         }
     }
 
@@ -31,7 +18,7 @@ namespace AStar
      * Esta clase representa un nodo del mapa de celdas del algoritmo del A*.
      * Indica cuál es su posición (x,y) en ese mapa, así como su valor F, G, H.
      */
-    public class Node
+    public class Node : IComparable<Node>
     {
 	    /**
 	     * Componente x (columna) de la posición del nodo en el mapa.
@@ -178,6 +165,11 @@ namespace AStar
                 cost = value;
                 recalculateF();
             }
+        }
+
+        public int CompareTo(Node other)
+        {
+            return F - other.F;
         }
 
 	    /**
