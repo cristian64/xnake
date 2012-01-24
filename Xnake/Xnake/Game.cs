@@ -51,6 +51,7 @@ namespace Xnake
         const int FAST = 10;
         int length;
         int score;
+        int foods;
         bool paused;
         bool justPaused;
         bool dead;
@@ -117,6 +118,7 @@ namespace Xnake
             lastDirection = Direction.UP;
             length = 1;
             score = 0;
+            foods = 0;
             paused = false;
             justPaused = false;
             dead = false;
@@ -180,6 +182,7 @@ namespace Xnake
                 board[17][15] = HEAD;
                 length = 1;
                 score = 0;
+                foods = 0;
             }
             else if (!dead && Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Space))
             {
@@ -243,13 +246,9 @@ namespace Xnake
 
                             //TODO: check where the head is
                             //according to the move, move in any of those 4 directions
-                            //add food immediately after take it
-                            //int foods better;
                             //(optional)row and columnd to say where the head is always
                             //(optional)not take tail into account, since it will be gone: head needed
                             //(optional)take the hamburguer randomly: how?
-                            //say in menu F1 is for help
-                            //astar.png not that visible
                         }
                     }
 
@@ -294,6 +293,7 @@ namespace Xnake
                         row = rows - 1;
                     else if (row >= rows)
                         row = 0;
+
                     // Check whether the head of the snake has touched itself or not.
                     if (board[column][row] == 0 || board[column][row] == FOOD)
                     {
@@ -303,6 +303,7 @@ namespace Xnake
                             length++;
                             score += 100 / millisecondsSleep;
                             biteSound.Play();
+                            foods--;
                         }
                     }
                     else
@@ -315,20 +316,18 @@ namespace Xnake
 
                     // Every few seconds, check if more food has to be placed.
                     int currentSecond = totalTime / 1000;
-                    if (lastSecond != currentSecond && currentSecond % (3 + length / 20) == 0)
+                    if (foods == 0 || lastSecond != currentSecond && currentSecond % (3 + length / 20) == 0)
                     {
                         lastSecond = currentSecond;
-                        int foods = 0;
-                        for (int i = 0; i < columns; i++)
-                            for (int j = 0; j < rows; j++)
-                                if (board[i][j] == FOOD)
-                                    foods++;
                         if (score / 50 >= foods)
                         {
                             int rowCandidate = random.Next() % rows;
                             int columnCandidate = random.Next() % columns;
                             if (board[columnCandidate][rowCandidate] == 0)
+                            {
                                 board[columnCandidate][rowCandidate] = FOOD;
+                                foods++;
+                            }
                         }
                     }
                 }
@@ -356,7 +355,7 @@ namespace Xnake
             if (automatic && path != null)
                 foreach (Node i in path)
                 {
-                    spriteBatch.Draw(astarTexture, new Rectangle(i.Column * CELLSIZE, i.Row * CELLSIZE, CELLSIZE, CELLSIZE), Color.White);
+                    spriteBatch.Draw(astarTexture, new Rectangle(i.Column * CELLSIZE, i.Row * CELLSIZE, CELLSIZE, CELLSIZE), Color.White * 0.7f);
                 }
             for (int i = 0; i < columns; i++)
             {
@@ -401,6 +400,7 @@ namespace Xnake
                 spriteBatch.DrawString(font2, "Press [Esc] to exit", new Vector2(20, 380), Color.White * alpha);
                 spriteBatch.DrawString(font2, "Press [Space] to pause the game", new Vector2(20, 400), Color.White * alpha);
                 spriteBatch.DrawString(font2, "Press [1], [2] or [3] to change speed", new Vector2(20, 420), Color.White * alpha);
+                spriteBatch.DrawString(font2, "Press [F1] to active Artificial Intelligence", new Vector2(20, 440), Color.White * alpha);
             }
             if (dead)
             {
