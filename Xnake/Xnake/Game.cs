@@ -211,8 +211,19 @@ namespace Xnake
                     partialMilliseconds -= millisecondsSleep;
 
                     // Execute A* to find a path
-                    if (automatic)
+                    if (automatic && foods > 0)
                     {
+                        // Check where the head is.
+                        int headColumn = 0;
+                        int headRow = 0;
+                        for (int i = 0; i < columns; i++)
+                            for (int j = 0; j < rows; j++)
+                                if (board[i][j] == HEAD)
+                                {
+                                    headColumn = i;
+                                    headRow = j;
+                                }
+
                         // If there is no  path, it finds it.
                         if (path == null || path.Count == 0)
                         {
@@ -225,17 +236,19 @@ namespace Xnake
                                 for (int j = 0; j < rows; j++)
                                 {
                                     nodes[i][j] = new Node(i, j);
-                                    if (board[i][j] == FOOD)
+                                    if (board[i][j] == FOOD) // TODO improve ramdonly the endNode
                                         endNode = nodes[i][j];
                                     else if (board[i][j] == HEAD)
                                         startNode = nodes[i][j];
-                                    else if (board[i][j] > 0)
+                                    else if (board[i][j] > Math.Abs(i - headColumn) + Math.Abs(j - headRow))
                                         nodes[i][j].Transitable = false;
                                 }
                             }
 
                             AStar.AStar astar = new AStar.AStar(nodes, startNode, endNode);
                             path = astar.FindPath();
+                            if (path != null && path.Count > 0)
+                                path.RemoveAt(0);
                         }
 
                         // If there is a path, it takes the next move.
@@ -244,11 +257,14 @@ namespace Xnake
                             Node node = (Node)path[0];
                             path.RemoveAt(0);
 
-                            //TODO: check where the head is
-                            //according to the move, move in any of those 4 directions
-                            //(optional)row and columnd to say where the head is always
-                            //(optional)not take tail into account, since it will be gone: head needed
-                            //(optional)take the hamburguer randomly: how?
+                            if (node.Column < headColumn)
+                                nextDirection = Direction.LEFT;
+                            else if (node.Column > headColumn)
+                                nextDirection = Direction.RIGHT;
+                            else if (node.Row < headRow)
+                                nextDirection = Direction.UP;
+                            else
+                                nextDirection = Direction.DOWN;
                         }
                     }
 
