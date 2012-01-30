@@ -56,7 +56,7 @@ namespace AStar
          */
         public ArrayList FindPath()
         {
-            PriorityQueueB<Node> openList = new PriorityQueueB<Node>(new NodeComparer());
+            BinaryHeap<Node> openList = new BinaryHeap<Node>(new NodeComparer());
             ArrayList closedList = new ArrayList();
             Node currentNode = null;
             bool pathFound = false;
@@ -75,7 +75,7 @@ namespace AStar
                 }
 
             // Añadimos el cuadro inicial a la lista abierta.
-            openList.Push(startNode);
+            openList.Insert(startNode);
 
             int iterations = 0;
             // Buscamos el camino mientras queden nodos candidatos y no lo hayamos encontrado.
@@ -83,7 +83,7 @@ namespace AStar
             {
                 iterations++;
                 // Extraemos el nodo de menor F desde la lista abierta hacia la lista cerrada.
-                currentNode = openList.Pop();
+                currentNode = openList.Remove();
                 closedList.Add(currentNode);
 
                 // Extraemos los nodos adyacentes al nodo actual.
@@ -116,10 +116,11 @@ namespace AStar
                     nearNodes.RemoveAt(0);
                     if (!closedList.Contains(nearNode))
                     {
-                        if (!openList.Contains(nearNode))
+                        int nearNodeIndex = openList.Find(nearNode);
+                        if (nearNodeIndex == -1)
                         {
                             nearNode.ParentNode = currentNode;
-                            openList.Push(nearNode);
+                            openList.Insert(nearNode);
 
                             if (endNode == nearNode)
                             {
@@ -130,9 +131,8 @@ namespace AStar
                         {
                             if (currentNode.G + 10 < nearNode.G)
                             {
-                                openList.RemoveLocation(nearNode);
                                 nearNode.ParentNode = currentNode;
-                                openList.Push(nearNode);
+                                openList.Update(nearNodeIndex);
                             }
                         }
                     }
