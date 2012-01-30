@@ -240,7 +240,7 @@ namespace Xnake
                                         endNode = nodes[i][j];
                                     else if (board[i][j] == HEAD)
                                         startNode = nodes[i][j];
-                                    else if (board[i][j] > Math.Abs(i - headColumn) + Math.Abs(j - headRow))
+                                    else if (board[i][j] > Math.Min(columns - Math.Abs(i - headColumn), Math.Abs(i - headColumn)) + Math.Min(rows - Math.Abs(j - headRow), Math.Abs(j - headRow)))
                                         nodes[i][j].Transitable = false;
                                 }
                             }
