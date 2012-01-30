@@ -52,38 +52,17 @@ namespace AStar
             }
         }
 
-        public void Remove()
+        public T Remove()
         {
-            if (innerList.Count > 0)
-            {
-                T item = innerList[innerList.Count - 1];
-                innerList[0] = item;
-                innerList.RemoveAt(innerList.Count - 1);
-
-                int itemIndex = 0, oldIndex;
-                int leftChildIndex;
-                int rightChildIndex;
-
-                do
-                {
-                    oldIndex = itemIndex;
-                    leftChildIndex = itemIndex * 2 + 1;
-                    rightChildIndex = itemIndex * 2 + 2;
-
-                    if (leftChildIndex < innerList.Count && comparer.Compare(innerList[itemIndex], innerList[leftChildIndex]) > 0)
-                        itemIndex = leftChildIndex;
-                    if (rightChildIndex < innerList.Count && comparer.Compare(innerList[itemIndex], innerList[rightChildIndex]) > 0)
-                        itemIndex = rightChildIndex;
-
-                    if (oldIndex == itemIndex)
-                        break;
-                    innerList[oldIndex] = innerList[itemIndex];
-                    innerList[itemIndex] = item;
-                } while (true);
-            }
+            return Remove(0);
         }
 
-        public int Find(T item, int index = 0)
+        public int Find(T item)
+        {
+            return Find(item, 0);
+        }
+
+        private int Find(T item, int index)
         {
             if (index < innerList.Count)
             {
@@ -99,34 +78,46 @@ namespace AStar
             return -1;
         }
 
-        public void Remove(int index)
+        public bool Contains(T item)
+        {
+            return Find(item, 0) != -1;
+        }
+
+        public T Remove(int index)
         {
             if (innerList.Count > index)
             {
+                T result = innerList[index];
                 T item = innerList[innerList.Count - 1];
                 innerList[index] = item;
                 innerList.RemoveAt(innerList.Count - 1);
 
-                int itemIndex = index, oldIndex;
+                int oldIndex;
                 int leftChildIndex;
                 int rightChildIndex;
 
                 do
                 {
-                    oldIndex = itemIndex;
-                    leftChildIndex = itemIndex * 2 + 1;
-                    rightChildIndex = itemIndex * 2 + 2;
+                    oldIndex = index;
+                    leftChildIndex = index * 2 + 1;
+                    rightChildIndex = index * 2 + 2;
 
-                    if (leftChildIndex < innerList.Count && comparer.Compare(innerList[itemIndex], innerList[leftChildIndex]) > 0)
-                        itemIndex = leftChildIndex;
-                    if (rightChildIndex < innerList.Count && comparer.Compare(innerList[itemIndex], innerList[rightChildIndex]) > 0)
-                        itemIndex = rightChildIndex;
+                    if (leftChildIndex < innerList.Count && comparer.Compare(innerList[index], innerList[leftChildIndex]) > 0)
+                        index = leftChildIndex;
+                    if (rightChildIndex < innerList.Count && comparer.Compare(innerList[index], innerList[rightChildIndex]) > 0)
+                        index = rightChildIndex;
 
-                    if (oldIndex == itemIndex)
+                    if (oldIndex == index)
                         break;
-                    innerList[oldIndex] = innerList[itemIndex];
-                    innerList[itemIndex] = item;
+                    innerList[oldIndex] = innerList[index];
+                    innerList[index] = item;
                 } while (true);
+
+                return result;
+            }
+            else
+            {
+                return default(T);
             }
         }
 
@@ -152,7 +143,40 @@ namespace AStar
 
         public void Update(int index)
         {
+            int itemIndex = index;
+            T item = innerList[index];
+            int parentIndex = (itemIndex - 1) / 2;
+            while (itemIndex != 0 && comparer.Compare(item, innerList[parentIndex]) < 0)
+            {
+                innerList[itemIndex] = innerList[parentIndex];
+                innerList[parentIndex] = item;
+                itemIndex = parentIndex;
+                parentIndex = (itemIndex - 1) / 2;
+            }
 
+            if (itemIndex != index)
+                return;
+
+            int oldIndex;
+            int leftChildIndex;
+            int rightChildIndex;
+
+            do
+            {
+                oldIndex = index;
+                leftChildIndex = index * 2 + 1;
+                rightChildIndex = index * 2 + 2;
+
+                if (leftChildIndex < innerList.Count && comparer.Compare(innerList[index], innerList[leftChildIndex]) > 0)
+                    index = leftChildIndex;
+                if (rightChildIndex < innerList.Count && comparer.Compare(innerList[index], innerList[rightChildIndex]) > 0)
+                    index = rightChildIndex;
+
+                if (oldIndex == index)
+                    break;
+                innerList[oldIndex] = innerList[index];
+                innerList[index] = item;
+            } while (true);
         }
     }
 }

@@ -51,6 +51,10 @@
       <Project>{F6F85683-3407-46CD-BDED-439B35174F7A}</Project>
       <Name>AStar</Name>
     </ProjectReference>
+    <ProjectReference Include="..\PowerCollections\PowerCollections.csproj">
+      <Project>{5821977D-AC2C-4912-BCD0-6E6B1A756167}</Project>
+      <Name>PowerCollections</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
