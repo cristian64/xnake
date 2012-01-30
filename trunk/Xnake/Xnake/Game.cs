@@ -257,17 +257,18 @@ namespace Xnake
                             Node node = (Node)path[0];
                             path.RemoveAt(0);
 
-                            if (node.Column < headColumn)
+                            if (node.Column == headColumn - 1 || (headColumn == 0 && node.Column == columns -1))
                                 nextDirection = Direction.LEFT;
-                            else if (node.Column > headColumn)
+                            else if (node.Column == headColumn + 1 || (headColumn == columns - 1 && node.Column == 0))
                                 nextDirection = Direction.RIGHT;
-                            else if (node.Row < headRow)
+                            else if (node.Row == headRow - 1 || (headRow == 0 && node.Row == rows - 1))
                                 nextDirection = Direction.UP;
                             else
                                 nextDirection = Direction.DOWN;
                         }
                         else
                         {
+                            // if there is no path, find some way to turn around.
                             // TODO: try not to die if there is no path!
                         }
                     }

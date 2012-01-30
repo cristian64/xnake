@@ -56,7 +56,7 @@ namespace AStar
          */
         public ArrayList FindPath()
         {
-            OrderedBag<Node> openList = new OrderedBag<Node>(new NodeComparer());
+            PriorityQueueB<Node> openList = new PriorityQueueB<Node>(new NodeComparer());
             ArrayList closedList = new ArrayList();
             Node currentNode = null;
             bool pathFound = false;
@@ -75,7 +75,7 @@ namespace AStar
                 }
 
             // Añadimos el cuadro inicial a la lista abierta.
-            openList.Add(startNode);
+            openList.Push(startNode);
 
             int iterations = 0;
             // Buscamos el camino mientras queden nodos candidatos y no lo hayamos encontrado.
@@ -83,39 +83,30 @@ namespace AStar
             {
                 iterations++;
                 // Extraemos el nodo de menor F desde la lista abierta hacia la lista cerrada.
-                currentNode = openList.Min();
-                openList.Remove(currentNode);
+                currentNode = openList.Pop();
                 closedList.Add(currentNode);
 
                 // Extraemos los nodos adyacentes al nodo actual.
                 ArrayList nearNodes = new ArrayList();
-                if (0 <= currentNode.Column + 1 && currentNode.Column + 1 < columns && 0 <= currentNode.Row && currentNode.Row < rows)
                 {
-                    if (nodes[currentNode.Column + 1][currentNode.Row].Transitable)
-                    {
-                        nearNodes.Add(nodes[currentNode.Column + 1][currentNode.Row]);
-                    }
+                    Node nearNode = nodes[currentNode.Column + 1 < columns ? currentNode.Column + 1 : 0][currentNode.Row];
+                    if (nearNode.Transitable)
+                        nearNodes.Add(nearNode);
                 }
-                if (0 <= currentNode.Column - 1 && currentNode.Column - 1 < columns && 0 <= currentNode.Row && currentNode.Row < rows)
                 {
-                    if (nodes[currentNode.Column - 1][currentNode.Row].Transitable)
-                    {
-                        nearNodes.Add(nodes[currentNode.Column - 1][currentNode.Row]);
-                    }
+                    Node nearNode = nodes[currentNode.Column - 1 >= 0 ? currentNode.Column - 1 : columns - 1][currentNode.Row];
+                    if (nearNode.Transitable)
+                        nearNodes.Add(nearNode);
                 }
-                if (0 <= currentNode.Column && currentNode.Column < columns && 0 <= currentNode.Row - 1 && currentNode.Row - 1 < rows)
                 {
-                    if (nodes[currentNode.Column][currentNode.Row - 1].Transitable)
-                    {
-                        nearNodes.Add(nodes[currentNode.Column][currentNode.Row - 1]);
-                    }
+                    Node nearNode = nodes[currentNode.Column][currentNode.Row + 1 < rows ? currentNode.Row + 1 : 0];
+                    if (nearNode.Transitable)
+                        nearNodes.Add(nearNode);
                 }
-                if (0 <= currentNode.Column && currentNode.Column < columns && 0 <= currentNode.Row + 1 && currentNode.Row + 1 < rows)
                 {
-                    if (nodes[currentNode.Column][currentNode.Row + 1].Transitable)
-                    {
-                        nearNodes.Add(nodes[currentNode.Column][currentNode.Row + 1]);
-                    }
+                    Node nearNode = nodes[currentNode.Column][currentNode.Row - 1 >= 0 ? currentNode.Row - 1 : rows - 1];
+                    if (nearNode.Transitable)
+                        nearNodes.Add(nearNode);
                 }
 
                 // Para cada nodo encontrado, comprobamos si hemos llegado al punto de destino.
@@ -128,7 +119,7 @@ namespace AStar
                         if (!openList.Contains(nearNode))
                         {
                             nearNode.ParentNode = currentNode;
-                            openList.Add(nearNode);
+                            openList.Push(nearNode);
 
                             if (endNode == nearNode)
                             {
@@ -139,9 +130,9 @@ namespace AStar
                         {
                             if (currentNode.G + 10 < nearNode.G)
                             {
-                                openList.Remove(nearNode);
+                                openList.RemoveLocation(nearNode);
                                 nearNode.ParentNode = currentNode;
-                                openList.Add(nearNode);
+                                openList.Push(nearNode);
                             }
                         }
                     }
